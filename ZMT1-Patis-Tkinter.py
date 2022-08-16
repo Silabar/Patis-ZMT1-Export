@@ -4,6 +4,12 @@ import datetime
 from tkinter import filedialog
 import tkinter as tk
 import os
+import sys
+
+if len(sys.argv) > 1:
+    patis_landingzone = sys.argv[1]
+else:
+    patis_landingzone = ""
 
 
 
