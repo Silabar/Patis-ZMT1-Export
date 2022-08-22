@@ -11,8 +11,6 @@ if len(sys.argv) > 1:
 else:
     patis_landingzone = ""
 
-
-
 def setze_status(status_text, status_farbe):
     global lb
     lb.config(text = status_text, background= status_farbe)
@@ -55,7 +53,10 @@ def zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand):
     minute = jetzt.minute
     sekunde = jetzt.second
 
-    verzeichnis = filedialog.askdirectory()
+    if os.path.exists(patis_landingzone):
+        verzeichnis = filedialog.askdirectory(initialdir=patis_landingzone)
+    else:
+        verzeichnis = filedialog.askdirectory()
 
     if verzeichnis:
         eintraege = []
