@@ -24,7 +24,7 @@ def hauptfenster_reset():
     ent1.focus()
     setze_status("Reset erfolgreich", "green")
 
-def eingabencheck(sachnummer, serialstart, serialend, auftrag, revstand):
+def eingaben_check(sachnummer, serialstart, serialend, auftrag, revstand):
     if not str.isdigit(sachnummer):
         setze_status("Sachnummer muss eine Nummer sein!", "red")
         return
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     ent4.grid(row=3, column=1)
     ent5.grid(row=4, column=1)
 
-    btn_exec=tk.Button(hauptfenster, text="ZMT1-File erzeugen" , command=lambda: eingabencheck(ent1.get(), ent2.get(), ent3.get(), ent4.get(), ent5.get()))
+    btn_exec=tk.Button(hauptfenster, text="ZMT1-File erzeugen" , command=lambda: eingaben_check(ent1.get(), ent2.get(), ent3.get(), ent4.get(), ent5.get()))
     btn_reset=tk.Button(hauptfenster, text="Reset", command=hauptfenster_reset)
     btn_exec.grid(row=5, column=1)
     btn_reset.grid(row=5, column= 0)
