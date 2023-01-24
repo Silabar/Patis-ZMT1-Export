@@ -37,8 +37,8 @@ def eingaben_check(sachnummer, serialstart, serialend, auftrag, revstand):
         setze_status("Endserial muss eine Nummer sein!", "red")
         return
 
-    if not str.isdigit(auftrag):
-        setze_status("Auftrag muss eine Nummer sein!", "red")
+    if not str.isdigit(auftrag) or not len(auftrag) == 7:
+        setze_status("Auftrag muss eine Nummer mit 7 Stellen sein!", "red")
         return
 
     zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand)
