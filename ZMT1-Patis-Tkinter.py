@@ -4,8 +4,12 @@ import datetime
 from tkinter import filedialog
 import tkinter as tk
 import os
+import sys
 
-
+if len(sys.argv) > 1:
+    patis_landingzone = sys.argv[1]
+else:
+    patis_landingzone = ""
 
 def setze_status(status_text, status_farbe):
     global lb
@@ -20,9 +24,9 @@ def hauptfenster_reset():
     ent1.focus()
     setze_status("Reset erfolgreich", "green")
 
-def eingabencheck(sachnummer, serialstart, serialend, auftrag, revstand):
-    if not str.isdigit(sachnummer):
-        setze_status("Sachnummer muss eine Nummer sein!", "red")
+def eingaben_check(sachnummer, serialstart, serialend, auftrag, revstand):
+    if not str.isdigit(sachnummer) or (len(sachnummer) < 7 or len(sachnummer) > 8):
+        setze_status("Sachnummer muss eine Nummer mit 7 bis 8 Stellen sein!", "red")
         return
 
     if not str.isdigit(serialstart):
@@ -33,8 +37,12 @@ def eingabencheck(sachnummer, serialstart, serialend, auftrag, revstand):
         setze_status("Endserial muss eine Nummer sein!", "red")
         return
 
-    if not str.isdigit(auftrag):
-        setze_status("Auftrag muss eine Nummer sein!", "red")
+    if int(serialstart) > int(serialend):
+        setze_status("Endserial muss größer oder gleich Startserial sein!", "red")
+        return
+
+    if not str.isdigit(auftrag) or not len(auftrag) == 7:
+        setze_status("Auftrag muss eine Nummer mit 7 Stellen sein!", "red")
         return
 
     zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand)
@@ -49,7 +57,10 @@ def zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand):
     minute = jetzt.minute
     sekunde = jetzt.second
 
-    verzeichnis = filedialog.askdirectory()
+    if os.path.exists(patis_landingzone):
+        verzeichnis = filedialog.askdirectory(initialdir=patis_landingzone)
+    else:
+        verzeichnis = filedialog.askdirectory()
 
     if verzeichnis:
         eintraege = []
@@ -113,7 +124,7 @@ if __name__ == "__main__":
     ent4.grid(row=3, column=1)
     ent5.grid(row=4, column=1)
 
-    btn_exec=tk.Button(hauptfenster, text="ZMT1-File erzeugen" , command=lambda: eingabencheck(ent1.get(), ent2.get(), ent3.get(), ent4.get(), ent5.get()))
+    btn_exec=tk.Button(hauptfenster, text="ZMT1-File erzeugen" , command=lambda: eingaben_check(ent1.get(), ent2.get(), ent3.get(), ent4.get(), ent5.get()))
     btn_reset=tk.Button(hauptfenster, text="Reset", command=hauptfenster_reset)
     btn_exec.grid(row=5, column=1)
     btn_reset.grid(row=5, column= 0)
