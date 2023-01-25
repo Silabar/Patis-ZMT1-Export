@@ -25,8 +25,8 @@ def hauptfenster_reset():
     setze_status("Reset erfolgreich", "green")
 
 def eingaben_check(sachnummer, serialstart, serialend, auftrag, revstand):
-    if not str.isdigit(sachnummer):
-        setze_status("Sachnummer muss eine Nummer sein!", "red")
+    if not str.isdigit(sachnummer) or (len(sachnummer) < 7 or len(sachnummer) > 8):
+        setze_status("Sachnummer muss eine Nummer mit 7 bis 8 Stellen sein!", "red")
         return
 
     if not str.isdigit(serialstart):
@@ -35,6 +35,10 @@ def eingaben_check(sachnummer, serialstart, serialend, auftrag, revstand):
 
     if not str.isdigit(serialend):
         setze_status("Endserial muss eine Nummer sein!", "red")
+        return
+
+    if int(serialstart) > int(serialend):
+        setze_status("Endserial muss größer oder gleich Startserial sein!", "red")
         return
 
     if not str.isdigit(auftrag) or not len(auftrag) == 7:
