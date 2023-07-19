@@ -7,9 +7,9 @@ import os
 import sys
 
 if len(sys.argv) > 1:
-    patis_landingzone = sys.argv[1]
+    PATIS_LANDINGZONE = sys.argv[1]
 else:
-    patis_landingzone = ""
+    PATIS_LANDINGZONE = ""
 
 def setze_status(status_text, status_farbe):
     global lb
@@ -57,8 +57,8 @@ def zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand):
     minute = jetzt.minute
     sekunde = jetzt.second
 
-    if os.path.exists(patis_landingzone):
-        verzeichnis = filedialog.askdirectory(initialdir=patis_landingzone)
+    if os.path.exists(PATIS_LANDINGZONE):
+        verzeichnis = filedialog.askdirectory(initialdir=PATIS_LANDINGZONE)
     else:
         verzeichnis = filedialog.askdirectory()
 
