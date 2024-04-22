@@ -1,139 +1,129 @@
-#!/usr/bin/env python3
-
 import datetime
-from tkinter import filedialog
 import tkinter as tk
+from tkinter import filedialog
 import os
 import sys
 
-if len(sys.argv) > 1:
-    PATIS_LANDINGZONE = sys.argv[1]
-else:
-    PATIS_LANDINGZONE = ""
+class Hauptfenster(tk.Tk):
+    def __init__(self, landingzone=""):
+        super().__init__()
+        self.title("Patis-ZMT1")
+        self.geometry("230x240")
+        self.PATIS_LANDINGZONE = landingzone
+        self.create_widgets()
 
-def setze_status(status_text, status_farbe):
-    global lb
-    lb.config(text = status_text, background= status_farbe)
+    def create_widgets(self):
+        labels = ["Sachnummer", "Startserialnummer", "Endserialnummer", "Auftrag", "Rev-Stand"]
+        self.entries = []
+        for i, label_text in enumerate(labels):
+            tk.Label(self, text=label_text).grid(row=i, column=0, sticky="w")
+            entry = tk.Entry(self)
+            entry.grid(row=i, column=1, sticky="ew")
+            self.entries.append(entry)
 
-def hauptfenster_reset():
-    ent1.delete(0, "end")
-    ent2.delete(0, "end")
-    ent3.delete(0, "end")
-    ent4.delete(0, "end")
-    ent5.delete(0, "end")
-    ent1.focus()
-    setze_status("Reset erfolgreich", "green")
+        self.btn_exec = tk.Button(self, text="ZMT1-File erzeugen", command=self.eingaben_check)
+        self.btn_exec.grid(row=len(labels), column=1, sticky="ew")
+        self.btn_reset = tk.Button(self, text="Reset", command=self.hauptfenster_reset)
+        self.btn_reset.grid(row=len(labels), column=0, sticky="ew")
 
-def eingaben_check(sachnummer, serialstart, serialend, auftrag, revstand):
-    if not str.isdigit(sachnummer) or (len(sachnummer) < 7 or len(sachnummer) > 8):
-        setze_status("Sachnummer muss eine Nummer mit 7 bis 8 Stellen sein!", "red")
-        return
+        self.status_frame = tk.LabelFrame(self, text="Status:")
+        self.status_frame.grid(row=len(labels)+1, column=0, columnspan=2, sticky="ew")
+        self.lb = tk.Label(self.status_frame, wraplength=200)
+        self.lb.grid(row=0, column=0, columnspan=2)
 
-    if not str.isdigit(serialstart):
-        setze_status("Startserial muss eine Nummer sein!", "red")
-        return
+        self.entries[0].focus()
+        self.setze_status("Bitte Werte eintragen", "yellow")
 
-    if not str.isdigit(serialend):
-        setze_status("Endserial muss eine Nummer sein!", "red")
-        return
+    def setze_status(self, status_text, status_farbe):
+        self.lb.config(text=status_text, background=status_farbe)
 
-    if int(serialstart) > int(serialend):
-        setze_status("Endserial muss größer oder gleich Startserial sein!", "red")
-        return
+    def hauptfenster_reset(self):
+        for entry in self.entries:
+            entry.delete(0, "end")
+        self.entries[0].focus()
+        self.setze_status("Reset erfolgreich", "green")
 
-    if not str.isdigit(auftrag) or not len(auftrag) == 7:
-        setze_status("Auftrag muss eine Nummer mit 7 Stellen sein!", "red")
-        return
-
-    zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand)
-
-def zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand):
-    jetzt = datetime.datetime.now()
-
-    jahr = jetzt.year
-    monat = jetzt.month
-    tag = jetzt.day
-    stunde = jetzt.hour
-    minute = jetzt.minute
-    sekunde = jetzt.second
-
-    if os.path.exists(PATIS_LANDINGZONE):
-        verzeichnis = filedialog.askdirectory(initialdir=PATIS_LANDINGZONE)
-    else:
-        verzeichnis = filedialog.askdirectory()
-
-    if verzeichnis:
-        eintraege = []
-        for i in range(int(serialstart), int(serialend) + 1):
-            eintraege.append(
-                            sachnummer.zfill(18)
-                            + str(i)
-                            + " " * (36-18-len(str(i)))
-                            + "1030" + auftrag.zfill(12)
-                            + 13*" "
-                            + revstand.zfill(2)
-                            + "  n.a."
-                            + 26*" "
-                            + str(jahr)
-                            + str(monat).zfill(2)+str(tag).zfill(2)
-                            + "FME     ")
-
-        datei = (
-                "FME_ZMT1_"
-                + str(minute).zfill(2)
-                + str(sekunde).zfill(2)
-                + "_"
-                + str(jahr)
-                + str(monat).zfill(2)
-                + str(tag).zfill(2)
-                + "_"
-                + str(stunde).zfill(2)
-                + ".DAT")
-
+    def eingaben_check(self):
+        eingaben = [entry.get() for entry in self.entries]
+        sachnummer, serialstart, serialend, auftrag, revstand = eingaben
         try:
-            with open(os.sep.join([verzeichnis, datei]), "w") as zmt1datei:
-                zmt1datei.write(str(len(eintraege)).zfill(6) + "\n")
-                for x in eintraege:
-                    zmt1datei.write(x + "\n")
-            setze_status("Datei " + datei + " wurde erzeugt", "green")
+            sachnummer = int(sachnummer)
+            auftrag = int(auftrag)
+            serialstart = int(serialstart)
+            serialend = int(serialend)
+            revstand = int(revstand)
+        except ValueError:
+            self.setze_status("Ungültige Eingaben", "red")
+            return
 
-        except(IOError):
-            setze_status("Datei kann nicht geschrieben werden", "red")
-    else:
-        setze_status("Abbruch durch Benutzer", "red")
+        if len(str(sachnummer)) not in [7, 8]:
+            self.setze_status("Sachnummer muss eine Nummer mit 7 bis 8 Stellen sein!", "red")
+        elif serialstart > serialend:
+            self.setze_status("Endserial muss größer oder gleich Startserial sein!", "red")
+        elif len(str(auftrag)) != 7:
+            self.setze_status("Auftrag muss eine Nummer mit 7 Stellen sein!", "red")
+        else:
+            self.zmt1_file_erstellen(sachnummer, serialstart, serialend, auftrag, revstand)
 
+    def zmt1_file_erstellen(self, sachnummer, serialstart, serialend, auftrag, revstand):
+        jetzt = datetime.datetime.now()
+
+        jahr = jetzt.year
+        monat = jetzt.month
+        tag = jetzt.day
+        stunde = jetzt.hour
+        minute = jetzt.minute
+        sekunde = jetzt.second
+
+        if os.path.exists(self.PATIS_LANDINGZONE):
+            verzeichnis = filedialog.askdirectory(initialdir=self.PATIS_LANDINGZONE)
+        else:
+            verzeichnis = filedialog.askdirectory()
+
+        if verzeichnis:
+            eintraege = []
+            for i in range(serialstart, serialend + 1):
+                eintraege.append(
+                    str(sachnummer).zfill(18)
+                    + str(i)
+                    + " " * (36 - 18 - len(str(i)))
+                    + "1030" + str(auftrag).zfill(12)
+                    + 13 * " "
+                    + str(revstand).zfill(2)
+                    + "  n.a."
+                    + 26 * " "
+                    + str(jahr)
+                    + str(monat).zfill(2) + str(tag).zfill(2)
+                    + "FME     ")
+
+            datei = (
+                    "FME_ZMT1_"
+                    + str(minute).zfill(2)
+                    + str(sekunde).zfill(2)
+                    + "_"
+                    + str(jahr)
+                    + str(monat).zfill(2)
+                    + str(tag).zfill(2)
+                    + "_"
+                    + str(stunde).zfill(2)
+                    + ".DAT")
+
+            try:
+                os.makedirs(verzeichnis, exist_ok=True)
+                with open(os.path.join(verzeichnis, datei), "w", encoding="utf-8") as zmt1datei:
+                    zmt1datei.write(str(len(eintraege)).zfill(6) + "\n")
+                    for x in eintraege:
+                        zmt1datei.write(x + "\n")
+                if os.path.isfile(os.path.join(verzeichnis, datei)):
+                    self.setze_status("Datei " + datei + " wurde erzeugt", "green")
+                else:
+                    self.setze_status("Datei konnte nicht erstellt werden", "red")
+
+            except IOError:
+                self.setze_status("Datei kann nicht geschrieben werden", "red")
+        else:
+            self.setze_status("Abbruch durch Benutzer", "red")
 
 if __name__ == "__main__":
-    hauptfenster = tk.Tk()
-    hauptfenster.title("Patis-ZMT1")
-    hauptfenster.geometry("230x240")
-
-    tk.Label(hauptfenster, text="Sachnummer").grid(row=0, column = 0)
-    tk.Label(hauptfenster, text="Startserialnummer").grid(row=1, column = 0)
-    tk.Label(hauptfenster, text="Endserialnummer").grid(row=2, column = 0)
-    tk.Label(hauptfenster, text="Auftrag").grid(row=3, column = 0)
-    tk.Label(hauptfenster, text="Rev-Stand").grid(row=4, column = 0)
-    ent1 = tk.Entry(hauptfenster)
-    ent2 = tk.Entry(hauptfenster)
-    ent3 = tk.Entry(hauptfenster)
-    ent4 = tk.Entry(hauptfenster)
-    ent5 = tk.Entry(hauptfenster)
-    ent1.grid(row=0, column=1)
-    ent2.grid(row=1, column=1)
-    ent3.grid(row=2, column=1)
-    ent4.grid(row=3, column=1)
-    ent5.grid(row=4, column=1)
-
-    btn_exec=tk.Button(hauptfenster, text="ZMT1-File erzeugen" , command=lambda: eingaben_check(ent1.get(), ent2.get(), ent3.get(), ent4.get(), ent5.get()))
-    btn_reset=tk.Button(hauptfenster, text="Reset", command=hauptfenster_reset)
-    btn_exec.grid(row=5, column=1)
-    btn_reset.grid(row=5, column= 0)
-
-    lb_bock = tk.Label(hauptfenster).grid(row = 6, column = 0)
-    lf = tk.LabelFrame(hauptfenster, text="Status:")
-    lf.grid(row = 7, column = 0, columnspan = 2)
-    lb = tk.Label(lf, wraplength=200 )
-    setze_status("Bitte Werte eintragen", "yellow")
-    lb.grid(row = 0, column = 0, columnspan = 2)
-
-    hauptfenster.mainloop()
+    PATIS_LANDINGZONE = sys.argv[1] if len(sys.argv) > 1 else ""
+    Hauptfenster(PATIS_LANDINGZONE).mainloop()
