@@ -91,8 +91,8 @@ class PatisZMT1App(QMainWindow):
             return self.set_status("Seriennummern müssen Zahlen sein!", "red")
         if int(ss) > int(se):
             return self.set_status("Endserial >= Startserial!", "red")
-        if not a.isdigit() or len(a) != 7:
-            return self.set_status("Auftrag muss 7 Stellen haben!", "red")
+        if not a.isdigit() or not (7 <= len(s) <= 8):
+            return self.set_status("Auftrag muss 7-8 Stellen haben!", "red")
 
         self.create_zmt1_file(s, ss, se, a, r)
 
